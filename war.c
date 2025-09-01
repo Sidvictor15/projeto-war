@@ -51,6 +51,10 @@ int main() {
         scanf("%d", &cadastro[total].tropa);
         limparBufferEntrada();
 
+        if (cadastro[total].tropa < 1) {
+            cadastro[total].tropa = 1; // mínimo de 1 tropa
+        }
+
         total++;
     }
 
@@ -64,7 +68,7 @@ int main() {
 
     // --- Loop de ataques ---
     printf("\n====================================\n");
-    printf("=== FASE DE ATAQUE ===\n");
+    printf("=== FASE DE ATAQUE ===");
 
     while (1) {
         int atacante, defensor;
@@ -72,11 +76,6 @@ int main() {
         printf("\nEscolha o território atacante (1 a %d, ou 0 para sair): ", total);
         scanf("%d", &atacante);
         limparBufferEntrada();
-
-        if (atacante == defensor || atacante < 0 || atacante >= total || defensor < 0 || defensor >= total) {
-            printf("Escolha inválida!\n");
-            continue; // volta para o próximo ataque
-        }
 
         if (atacante == 0) {
             printf("Saindo do jogo...\n");
@@ -87,11 +86,24 @@ int main() {
         scanf("%d", &defensor);
         limparBufferEntrada();
 
+        // Validação
+        if (atacante < 1 || atacante > total ||
+            defensor < 1 || defensor > total ||
+            atacante == defensor) {
+            printf("Escolha inválida!\n");
+            continue;
+        }
+
         // Ajusta índices
         atacante--;
         defensor--;
 
-       
+        // Verifica se atacante tem tropas suficientes
+        if (cadastro[atacante].tropa <= 1) {
+            printf("O território %s não pode atacar (só possui 1 tropa).\n", cadastro[atacante].territorio);
+            continue;
+        }
+
         printf("\n--- RESULTADO DA BATALHA ---\n");
 
         int dadoAtacante = valorDado();
@@ -104,22 +116,21 @@ int main() {
             printf("\nVITÓRIA DO ATAQUE! O defensor perdeu 1 tropa.\n");
             cadastro[defensor].tropa--;
 
-                if (cadastro[defensor].tropa <= 0) {
-                    if (cadastro[atacante].tropa > 1) {
-                        printf("CONQUISTA! O território %s foi dominado pelo Exército %s!\n",
-                            cadastro[defensor].territorio, cadastro[atacante].cor);
+            if (cadastro[defensor].tropa <= 0) {
+                if (cadastro[atacante].tropa > 1) {
+                    printf("CONQUISTA! O território %s foi dominado pelo Exército %s!\n",
+                           cadastro[defensor].territorio, cadastro[atacante].cor);
 
-                        // Transfere 1 tropa mínima para o território conquistado
-                        strcpy(cadastro[defensor].cor, cadastro[atacante].cor);
-                        cadastro[defensor].tropa = 1;
-                        cadastro[atacante].tropa--;
+                    // Transfere 1 tropa mínima para o território conquistado
+                    strcpy(cadastro[defensor].cor, cadastro[atacante].cor);
+                    cadastro[defensor].tropa = 1;
+                    cadastro[atacante].tropa--;
 
-                    } else {
-                        // Caso especial: atacante só tinha 1 tropa
-                        printf("O atacante não possui tropas suficientes para ocupar o território!\n");
-                        cadastro[defensor].tropa = 1; // defensor mantém 1 tropa mínima
-                    }
+                } else {
+                    printf("O atacante não possui tropas suficientes para ocupar o território!\n");
+                    cadastro[defensor].tropa = 1;
                 }
+            }
 
         } else {
             printf("\nDEFESA RESISTIU! O atacante perdeu 1 tropa.\n");
@@ -129,6 +140,7 @@ int main() {
         // Situação final
         printf("\n--- Situação atual ---\n");
         for (int i = 0; i < total; i++) {
+            if (cadastro[i].tropa < 0) cadastro[i].tropa = 0; // nunca negativo
             printf("%d) %s (Exército %s, Tropas: %d)\n",
                    i + 1, cadastro[i].territorio, cadastro[i].cor, cadastro[i].tropa);
         }
